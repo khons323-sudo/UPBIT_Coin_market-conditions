@@ -1,0 +1,37 @@
+name: Doge Price Alarm 5min
+
+on:
+  schedule:
+    # Cron 문법 사용: 5분마다 실행하라는 뜻입니다.
+    # 주의: GitHub Actions는 정확한 5분 간격을 보장하지 않습니다. (지연될 수 있음)
+    - cron: '*/5 * * * *'
+  # 수동으로 실행 버튼을 눌러서 테스트해볼 수 있게 해주는 옵션
+  workflow_dispatch:
+
+jobs:
+  run_ticker_script:
+    runs-on: ubuntu-latest # 리눅스 환경에서 실행
+
+    steps:
+    # 1. 저장소의 코드를 가져옵니다.
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2. 파이썬 환경을 설정합니다.
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # 파이썬 버전 지정
+
+    # 3. 필요한 라이브러리(requests)를 설치합니다.
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4. 파이썬 스크립트를 실행합니다. 이때 Secrets를 환경변수로 넘겨줍니다.
+    - name: Run the script
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        CHAT_ID: ${{ secrets.CHAT_ID }}
+      run: python main.py
