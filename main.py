@@ -80,39 +80,3 @@ if __name__ == "__main__":
         print("업비트 API 호출 실패")
     print("\n")
 
-
-# 함수 정의: 독립적인 테스트 함수
-def send_telegram_test():
-    # 함수 내에서만 사용할 라이브러리 import (상단에 이미 있어서 생략 가능하나 유지함)
-    import requests
-    import os
-
-    # 이 함수 내에서만 사용할 지역 변수 선언
-    token = os.getenv("TELEGRAM_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID") # 소문자 chat_id에 값 저장
-
-    if not token or not chat_id:
-        print("테스트 오류: 환경변수가 없습니다.")
-        return
-
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    data = {
-        # [수정 2] 위에서 선언한 지역 변수 chat_id를 사용해야 합니다. (오타 수정됨)
-        "chat_id": chat_id,
-        "text": "🔥 강제 테스트 메시지 - 업비트 전송 확인 (오류 수정됨)"
-    }
-
-    try:
-        response = requests.post(url, data=data, timeout=5)
-        if response.status_code == 200:
-             print("테스트 메시지 전송 성공")
-        else:
-             print(f"테스트 메시지 전송 실패: {response.text}")
-    except Exception as e:
-        print(f"테스트 중 에러: {e}")
-
-
-# --- 메인 실행부 2: 강제 테스트 ---
-if __name__ == "__main__":
-    print("--- [2부] 강제 테스트 실행 ---")
-    send_telegram_test()
