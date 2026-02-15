@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 # ==========================================
 try:
     TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
-    CHAT_ID = os.environ["CHAT_ID"]
+    CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 except KeyError:
     print("오류: 환경 변수 TELEGRAM_TOKEN 또는 CHAT_ID가 설정되지 않았습니다.")
     # 로컬 테스트용 (필요시 주석 해제하고 사용, GitHub에 올릴 땐 주석 처리 필수)
@@ -27,7 +27,7 @@ def send_telegram_message(message):
     try:
         send_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         params = {
-            "chat_id": CHAT_ID,
+            "chat_id": TELEGRAM_CHAT_ID,
             "text": message,
             "parse_mode": "HTML" # 보기 좋게 꾸미기 위해 HTML 모드 사용
         }
@@ -111,7 +111,7 @@ def send_telegram_test():
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     data = {
-        "chat_id": chat_id,
+        "chat_id": TELEGRAM_chat_id,
         "text": "🔥 강제 테스트 메시지 - 업비트 전송 확인"
     }
 
