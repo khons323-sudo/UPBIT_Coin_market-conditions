@@ -7,18 +7,14 @@ from datetime import datetime, timezone, timedelta
 # [중요] GitHub Secrets에서 불러올 정보들
 # ==========================================
 try:
+    # 환경변수 "TELEGRAM_CHAT_ID"의 값을 파이썬 변수 'CHAT_ID'에 저장합니다.
     TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
     CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 except KeyError:
-    print("오류: 환경 변수 TELEGRAM_TOKEN 또는 CHAT_ID가 설정되지 않았습니다.")
-    # 로컬 테스트용 (필요시 주석 해제하고 사용, GitHub에 올릴 땐 주석 처리 필수)
-    # TELEGRAM_TOKEN = "YOUR_TOKEN_HERE"
-    # CHAT_ID = "YOUR_CHAT_ID_HERE"
-    
+    print("오류: 환경 변수 TELEGRAM_TOKEN 또는 TELEGRAM_CHAT_ID가 설정되지 않았습니다.")
     # GitHub Actions 환경에서 환경변수가 없으면 스크립트 종료
     if "GITHUB_ACTIONS" in os.environ:
         sys.exit(1)
-
 # ==========================================
 
 
@@ -27,9 +23,10 @@ def send_telegram_message(message):
     try:
         send_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         params = {
-            "chat_id": TELEGRAM_CHAT_ID,
+            # [수정 1] 위에서 선언한 글로벌 변수 CHAT_ID를 사용해야 합니다.
+            "chat_id": CHAT_ID,
             "text": message,
-            "parse_mode": "HTML" # 보기 좋게 꾸미기 위해 HTML 모드 사용
+            "parse_mode": "HTML"
         }
         response = requests.get(send_url, params=params, timeout=5)
         if response.status_code != 200:
@@ -39,83 +36,83 @@ def send_telegram_message(message):
 
 
 def get_crypto_prices(tickers):
-    """
-    업비트에서 여러 코인의 현재가를 한 번에 가져오는 함수
-    tickers: 콤마로 구분된 마켓 코드 문자열 (예: "KRW-BTC,KRW-DOGE")
-    Return: {'KRW-BTC': 가격, 'KRW-DOGE': 가격} 형태의 딕셔너리
-    """
+    """업비트 시세 조회 함수"""
     url = f"https://api.upbit.com/v1/ticker?markets={tickers}"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         data = response.json()
         
-        # 응답받은 리스트 데이터를 보기 편하게 딕셔너리로 변환
         price_dict = {}
         for coin_info in data:
-            market_code = coin_info['market']
-            price = coin_info['trade_price']
-            price_dict[market_code] = price
-            
+            price_dict[coin_info['market']] = coin_info['trade_price']
         return price_dict
     except Exception as e:
         print(f"업비트 시세 조회 실패: {e}")
         return None
 
 
-# --- 메인 실행부 ---
+# --- 메인 실행부 1: 시세 알림 ---
 if __name__ == "__main__":
-    print("스크립트 실행 시작...")
-
-    # 조회할 코인 목록 (콤마로 연결)
+    print("--- [1부] 시세 알림 로직 시작 ---")
     TARGET_COINS = "KRW-BTC,KRW-DOGE"
-    
-    # 시세 정보 가져오기
     prices = get_crypto_prices(TARGET_COINS)
     
     if prices is not None and len(prices) > 0:
-        # 한국 시간(KST) 구하기
         KST = timezone(timedelta(hours=9))
         now_time = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
         
-        # 각 코인별 가격 추출 (데이터가 없을 경우를 대비해 .get 사용)
         btc_price = prices.get('KRW-BTC')
         doge_price = prices.get('KRW-DOGE')
 
-        # 메시지 내용 구성
         message = f"💰 **업비트 주요 코인 시세 알림**\n\n"
         message += f"⏰ 시간(KST): {now_time}\n\n"
         
-        if btc_price:
-            message += f"🔸 **비트코인(BTC):** {btc_price:,.0f} KRW\n"
-        
-        if doge_price:
-            message += f"🔹 **도지코인(DOGE):** {doge_price:,.0f} KRW\n"
+        if btc_price: message += f"🔸 BTC: {btc_price:,.0f} KRW\n"
+        if doge_price: message += f"🔹 DOGE: {doge_price:,.0f} KRW\n"
 
-        # 정보가 하나라도 있으면 전송
         if btc_price or doge_price:
             send_telegram_message(message)
-            print(f"전송 완료: BTC({btc_price}), DOGE({doge_price})")
+            print("시세 알림 전송 완료")
         else:
-             print("작업 실패: 시세 데이터를 추출하지 못했습니다.")
-
+             print("시세 데이터 추출 실패")
     else:
-        print("작업 실패: 업비트 API 호출 실패로 메시지를 보내지 않았습니다.")
+        print("업비트 API 호출 실패")
+    print("\n")
 
+
+# 함수 정의: 독립적인 테스트 함수
 def send_telegram_test():
+    # 함수 내에서만 사용할 라이브러리 import (상단에 이미 있어서 생략 가능하나 유지함)
     import requests
     import os
 
+    # 이 함수 내에서만 사용할 지역 변수 선언
     token = os.getenv("TELEGRAM_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID") # 소문자 chat_id에 값 저장
+
+    if not token or not chat_id:
+        print("테스트 오류: 환경변수가 없습니다.")
+        return
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     data = {
-        "chat_id": TELEGRAM_chat_id,
-        "text": "🔥 강제 테스트 메시지 - 업비트 전송 확인"
+        # [수정 2] 위에서 선언한 지역 변수 chat_id를 사용해야 합니다. (오타 수정됨)
+        "chat_id": chat_id,
+        "text": "🔥 강제 테스트 메시지 - 업비트 전송 확인 (오류 수정됨)"
     }
 
-    requests.post(url, data=data)
+    try:
+        response = requests.post(url, data=data, timeout=5)
+        if response.status_code == 200:
+             print("테스트 메시지 전송 성공")
+        else:
+             print(f"테스트 메시지 전송 실패: {response.text}")
+    except Exception as e:
+        print(f"테스트 중 에러: {e}")
 
+
+# --- 메인 실행부 2: 강제 테스트 ---
 if __name__ == "__main__":
+    print("--- [2부] 강제 테스트 실행 ---")
     send_telegram_test()
