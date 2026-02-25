@@ -65,7 +65,7 @@ if __name__ == "__main__":
         btc_price = prices.get('KRW-BTC')
         doge_price = prices.get('KRW-DOGE')
 
-        message = f"💰 **업비트 주요 코인 시세 알림**\n\n"
+       
         message += f"⏰ 시간(KST): {now_time}\n\n"
         
         if btc_price: message += f"🔸 BTC: {btc_price:,.0f} KRW\n"
