@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
         if btc_price or doge_price:
             send_telegram_message(message)
-            print("시세 알림 전송 완료")
+            print("시세 전송 완료")
         else:
              print("시세 데이터 추출 실패")
     else:
