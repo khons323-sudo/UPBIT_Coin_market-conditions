@@ -66,7 +66,7 @@ if __name__ == "__main__":
         doge_price = prices.get('KRW-DOGE')
 
        
-        message += f"⏰ 시간(KST): {now_time}\n\n"
+        message = f"⏰ 시간(KST): {now_time}\n\n"
         
         if btc_price: message += f"🔸 BTC: {btc_price:,.0f} KRW\n"
         if doge_price: message += f"🔹 DOGE: {doge_price:,.0f} KRW\n"
